@@ -16,16 +16,32 @@ jobs:
       - name: Descargar archivos
         uses: actions/checkout@v4
 
-      - name: Revisar archivos del repositorio
-        run: |
-          echo "Archivos disponibles:"
-          ls -la
-          echo "Contenido del ZIP:"
-          unzip -l BilleteraPlus_proyecto_completo.zip | head -60
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: Revisar ZIP sin compilar
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Descomprimir proyecto
         run: |
           mkdir -p proyecto
           unzip -o BilleteraPlus_proyecto_completo.zip -d proyecto
-          echo "Archivos encontrados dentro del ZIP:"
-          find proyecto -maxdepth 5 -type f | head -100
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compilar APK
+        run: gradle -p proyecto/BilleteraPlus assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BilleteraPlus-APK
+          path: proyecto/BilleteraPlus/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
