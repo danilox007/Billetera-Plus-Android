@@ -1,0 +1,47 @@
+
+name: Build Billetera Plus APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar archivos
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Descomprimir proyecto
+        run: |
+          unzip -o BilleteraPlus_proyecto_completo.zip
+          test -f BilleteraPlus/app/build.gradle
+          test -f BilleteraPlus/settings.gradle
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compilar APK
+        run: gradle -p BilleteraPlus assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BilleteraPlus-APK
+          path: BilleteraPlus/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
